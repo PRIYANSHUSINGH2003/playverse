@@ -142,7 +142,7 @@ const fetchGamesFromPoki = () => {
 };
 const fetchGamesFromAPI = async () => {
     try {
-        const response = await fetch("http://localhost:5000/games");
+        const response = await fetch("https://playverse.onrender.com/games");
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -156,7 +156,7 @@ const fetchGamesFromAPI = async () => {
 
 const fetchGamesFromAPIbrowser = async () => {
     try {
-        const response = await fetch("http://localhost:5000/browser");
+        const response = await fetch("https://playverse.onrender.com/browser");
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
