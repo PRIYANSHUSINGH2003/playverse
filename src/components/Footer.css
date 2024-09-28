@@ -1,0 +1,85 @@
+.footer {
+    background: linear-gradient(90deg, rgba(24, 24, 24, 1) 0%, rgba(40, 40, 40, 1) 100%);
+    /* Gradient background */
+    color: #fff;
+    padding: 40px 20px;
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 0;
+    flex-wrap: wrap;
+}
+
+.footer-section {
+    flex: 1;
+    min-width: 200px;
+    margin: 20px;
+}
+
+.footer-section h4 {
+    margin-bottom: 10px;
+    font-size: 20px;
+    color: #ffcc00;
+    /* Bright color for headings */
+}
+
+.footer-section p {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section ul li {
+    margin: 10px 0;
+}
+
+.footer-section a {
+    color: #ffffff;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.footer-section a:hover {
+    color: #ffcc00;
+    /* Highlight color on hover */
+}
+
+.social-icons {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+}
+
+.social-icons a {
+    color: #ffffff;
+    font-size: 20px;
+    /* Size of social icons */
+    margin: 0 15px;
+    transition: color 0.3s;
+}
+
+.social-icons a:hover {
+    color: #ffcc00;
+    /* Highlight color on hover */
+}
+
+.footer-bottom {
+    padding: 20px 0;
+    border-top: 1px solid #444;
+    /* Subtle divider */
+}
+
+.footer-bottom p {
+    font-size: 14px;
+    color: #aaa;
+}

@@ -1,0 +1,48 @@
+.game-card {
+    background: #1c1c1c; /* Dark background for the card */
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    max-width: 300px; /* Maximum width for responsiveness */
+    margin: 20px; /* Margin around cards */
+    position: relative; /* Positioning for overlay effects */
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+.image-container {
+    width: 100%;
+    height: 180px; /* Fixed height for images */
+    overflow: hidden;
+}
+
+.game-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Maintain aspect ratio and cover the container */
+    transition: transform 0.3s; /* Smooth image scale on hover */
+}
+
+.game-card:hover .game-image {
+    transform: scale(1.05); /* Slightly zoom in on hover */
+}
+
+.game-title {
+    padding: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    color: #ffcc00; /* Bright color for title */
+    margin: 0; /* Remove default margin */
+}
+
+@media (max-width: 768px) {
+    .game-card {
+        max-width: 100%; /* Full width on smaller screens */
+    }
+}
