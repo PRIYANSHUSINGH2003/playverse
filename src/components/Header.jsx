@@ -18,6 +18,7 @@ const Header = ({ toggleDarkMode, darkMode, onSearch, searchValue }) => {
             </nav>
             <div className="search-bar">
                 <input 
+                className="Inputsearch"
                     type="text" 
                     placeholder="Search for games..." 
                     value={searchValue} 

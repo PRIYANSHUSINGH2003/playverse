@@ -60,7 +60,7 @@ const Contact = () => {
                                 placeholder="Your message..."
                             />
                         </div>
-                        <button type="submit">Send Message</button>
+                        <button type="submit" className='button'>Send Message</button>
                     </form>
                 </div>
             </div>

@@ -33,7 +33,7 @@
     margin: 0 20px;
 }
 
-.search-bar input {
+.search-bar .Inputsearch {
     width: 100%;
     padding: 10px;
     border: none;
