@@ -16,12 +16,20 @@
     color: #ffcc00;
     /* Bright color for logo */
 }
+.nav-links {
+    display: flex;
+    gap: 20px;
+}
 
+.nav-links a {
+    color: white;
+    text-decoration: none;
+}
 .search-bar {
     display: flex;
     align-items: center;
     flex: 1;
-    max-width: 600px;
+    max-width: 330px;
     margin: 0 20px;
 }
 
@@ -67,6 +75,16 @@
 .dark-mode-toggle button:hover {
     color: #ffcc00;
     /* Highlight color on hover */
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: #ffcc00; /* Highlight color on hover */
 }
 
 @media (max-width: 768px) {

@@ -1,0 +1,138 @@
+/* GameDetailModal.css */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease; /* Animation for opening */
+    z-index: 1000; /* Ensure modal is above other content */
+}
+
+.modal-content {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    width: 90%;
+    max-width: 600px;
+    position: relative;
+    animation: slideIn 0.3s ease forwards; /* Slide-in animation */
+    overflow-y: auto; /* Add scrolling if content is too long */
+    max-height: 80vh; /* Limit modal height */
+}
+
+.close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #ff4757;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close-button:hover {
+    color: #e84118; /* Darker red on hover */
+}
+
+.modal-image {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+h2 {
+    margin: 0 0 10px;
+    font-size: 26px;
+    color: #333;
+}
+
+.rating {
+    font-weight: bold;
+    color: #ff4757;
+}
+
+h3 {
+    margin: 20px 0 10px;
+    font-size: 22px;
+}
+
+h4 {
+    margin: 10px 0 5px;
+    font-size: 18px;
+    color: #555;
+}
+
+p {
+    margin: 5px 0;
+    font-size: 16px;
+    color: #666;
+}
+
+.requirements {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+/* GameDetailModal.css */
+
+/* ...existing styles... */
+
+.store-info {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.store-logo {
+    width: 50px; /* Adjust size as needed */
+    height: auto;
+    border-radius: 5px; /* Optional: for rounded corners */
+    margin-right: 10px;
+}
+
+.store-link {
+    margin-left: auto; /* Push the link to the right */
+    background-color: #007bff; /* Example: Bootstrap primary color */
+    color: #ffffff; /* Text color */
+    padding: 8px 12px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.store-link:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
