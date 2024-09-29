@@ -148,6 +148,30 @@ const fetchGamesFromPoki = () => {
                     game_url: "https://www.gamenora.com/embed/madness-sheriff-s-compound",
                     category: "Action"
                 },
+                {
+                    title: "Block Eating Simulator",
+                    image: "https://www.gamenora.com/upload/games/thumbnails/Block%20Eating%20Simulator.webp", // Placeholder image
+                    game_url: "'https://www.gamenora.com/embed/block-eating-simulator",
+                    category: "Action"
+                },
+                {
+                    title: "Eat Blobs Simulator",
+                    image: "https://www.gamenora.com/upload/games/thumbnails/Eat%20Blobs%20Simulator.webp", // Placeholder image
+                    game_url: "https://www.gamenora.com/embed/eat-blobs-simulator",
+                    category: "Action"
+                },
+                {
+                    title: "CubeRealm.io",
+                    image: "https://www.gamenora.com/upload/games/thumbnails/CubeRealm.io.webp", // Placeholder image
+                    game_url: "https://cuberealm.io/",
+                    category: "Action"
+                },
+                {
+                    title: "Bopz.io",
+                    image: "https://www.gamenora.com/upload/games/thumbnails/Bopz.io.webp", // Placeholder image
+                    game_url: "https://bopz.io/",
+                    category: "Action"
+                },                
             ]);
         }, 1000); // Simulate API delay
     });
