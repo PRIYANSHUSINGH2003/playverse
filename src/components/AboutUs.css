@@ -1,0 +1,149 @@
+/* Global styles for light and dark mode */
+body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+.about-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    min-height: 100vh;
+    background-color: #f5f5f5;
+    transition: background-color 0.3s ease;
+}
+
+.dark-mode .about-container {
+    background-color: #1f1f1f;
+}
+
+.about-content {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+.dark-mode .about-content {
+    background-color: #2c2c2c;
+}
+
+.about-text {
+    flex: 1;
+    margin-right: 20px;
+}
+
+.about-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.image {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.image:hover {
+    transform: scale(1.05);
+}
+
+.about-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.dark-mode .about-title {
+    color: #f5f5f5;
+}
+
+.about-description {
+    font-size: 1.2rem;
+    line-height: 1.8;
+    margin-bottom: 15px;
+    color: #666;
+}
+
+.dark-mode .about-description {
+    color: #e0e0e0;
+}
+
+.about-mission-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-top: 20px;
+    color: #444;
+}
+
+.dark-mode .about-mission-title {
+    color: #f1f1f1;
+}
+
+.about-mission {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #555;
+}
+
+.dark-mode .about-mission {
+    color: #d0d0d0;
+}
+
+.highlight {
+    color: #f05454;
+    font-weight: 700;
+}
+
+.dark-mode .highlight {
+    color: #ff7979;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .about-content {
+        flex-direction: column;
+        padding: 15px;
+    }
+
+    .about-text {
+        margin-right: 0;
+        margin-bottom: 20px;
+    }
+
+    .about-title {
+        font-size: 2rem;
+    }
+
+    .about-description {
+        font-size: 1.1rem;
+    }
+
+    .about-mission-title {
+        font-size: 1.6rem;
+    }
+
+    .about-mission {
+        font-size: 1rem;
+    }
+
+    .image {
+        width: 90%;
+    }
+}
