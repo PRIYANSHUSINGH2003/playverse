@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -13,9 +13,40 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import NotFound from './pages/NotFound';
 import { featuredGames, mergeGames } from './data/games';
-import { fetchBrowserGames, fetchPCGames } from './lib/api';
+import { fetchBrowserGames, fetchBrowserGameById, fetchPCGames } from './lib/api';
 import { pcGames, mobileGames } from './data/platformGames';
 import './styles.css';
+
+function GameRoute({ initialGame, allGames, catalogHydrated, onPlayed }) {
+  const { id } = useParams();
+  const [game, setGame] = useState(initialGame || null);
+  const [loading, setLoading] = useState(!initialGame && /^ftg-\d+$/.test(id || ''));
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    setGame(initialGame || null);
+    setError('');
+    if (initialGame || !/^ftg-\d+$/.test(id || '')) {
+      setLoading(false);
+      return;
+    }
+    const controller = new AbortController();
+    setLoading(true);
+    fetchBrowserGameById(id, controller.signal)
+      .then((value) => {
+        if (!value) throw new Error('Game not found');
+        setGame(value);
+      })
+      .catch((e) => { if (e.name !== 'AbortError') setError(e.message || 'Unable to load this game.'); })
+      .finally(() => setLoading(false));
+    return () => controller.abort();
+  }, [id, initialGame]);
+
+  if (loading) return <main className="container page-content"><div className="catalog-notice">Loading game…</div></main>;
+  if (game) return <GamePlayer game={game} allGames={allGames} onPlayed={onPlayed} />;
+  if (error) return <NotFound />;
+  return catalogHydrated ? <NotFound /> : <main className="container page-content"><div className="catalog-notice">Loading game catalog…</div></main>;
+}
 
 function Shell() {
   const [theme, setTheme] = useLocalStorage('theme', 'dark');
@@ -70,7 +101,7 @@ function Shell() {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/menu" element={<MobileMenu />} />
-        <Route path="/play/:id" element={playing ? <GamePlayer game={playing} allGames={allGames} onPlayed={markPlayed} /> : !catalogHydrated ? <main className="container page-content"><div className="catalog-notice">Loading game catalog…</div></main> : <NotFound />} />
+        <Route path="/play/:id" element={<GameRoute initialGame={playing} allGames={allGames} catalogHydrated={catalogHydrated} onPlayed={markPlayed} />} />
         <Route path="/privacy" element={<main className="container page-content prose-page"><span className="eyebrow">PRIVACY</span><h1>Privacy overview</h1><p>PlayVerse stores theme, search, favorites, and recently played state in your browser. External games, game catalogs, advertising providers, and outbound websites have their own policies.</p><p>For production advertising in the EEA, UK, or Switzerland, configure a Google-certified consent management solution before requesting personalized advertising.</p></main>} />
         <Route path="*" element={<NotFound />} />
       </Routes>

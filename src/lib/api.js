@@ -30,3 +30,11 @@ export async function submitContact(payload, signal) {
   });
   return json(response);
 }
+
+
+export async function fetchBrowserGameById(id, signal) {
+  const numericId = String(id || '').replace(/^ftg-/, '');
+  if (!/^\d+$/.test(numericId)) return null;
+  const response = await fetchWithTimeout(`/api/games/${numericId}`, { signal });
+  return json(response);
+}

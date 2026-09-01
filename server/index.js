@@ -34,6 +34,38 @@ function rateLimited(key, limit = 5, windowMs = 60_000) {
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'playverse-api', time: new Date().toISOString() }));
 
+app.get('/api/games/:id', async (req, res) => {
+  const id = String(req.params.id || '').trim();
+  if (!/^\d+$/.test(id)) return res.status(400).json({ message: 'Invalid game id.' });
+  const cacheKey = `freetogame-game:${id}`;
+  const hit = cached(cacheKey);
+  if (hit) return res.json(hit);
+  try {
+    const url = new URL('https://www.freetogame.com/api/game');
+    url.searchParams.set('id', id);
+    const response = await fetch(url, { headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error(`FreeToGame responded ${response.status}`);
+    const game = await response.json();
+    if (!game?.id) return res.status(404).json({ message: 'Game not found.' });
+    const normalized = {
+      id: `ftg-${game.id}`,
+      title: game.title,
+      thumbnail: normalizeUrl(game.thumbnail), image: normalizeUrl(game.thumbnail),
+      description: game.description || game.short_description || '',
+      category: game.genre || 'Other', genre: game.genre || 'Other',
+      platform: game.platform || 'Browser', publisher: game.publisher || '', developer: game.developer || '',
+      released: game.release_date || '', rating: 4.2,
+      game_url: normalizeUrl(game.game_url || game.freetogame_profile_url),
+      externalUrl: normalizeUrl(game.game_url || game.freetogame_profile_url),
+      source: 'FreeToGame', embedEligible: false,
+    };
+    return res.json(setCache(cacheKey, normalized));
+  } catch (error) {
+    console.error('[game]', error.message);
+    return res.status(502).json({ message: 'Game detail provider is temporarily unavailable.' });
+  }
+});
+
 app.get('/api/games', async (req, res) => {
   const platform = String(req.query.platform || 'browser').toLowerCase() === 'pc' ? 'pc' : 'browser';
   const key = `freetogame:${platform}`;
