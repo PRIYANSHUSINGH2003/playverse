@@ -1,35 +1,115 @@
-const express = require("express");
-const cors = require("cors");
-const axios = require("axios");
+import express from 'express';
+import cors from 'cors';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const app = express();
-app.use(cors());
+const PORT = Number(process.env.PORT || 5000);
+const allowedOrigins = (process.env.CLIENT_ORIGIN || 'http://localhost:5173').split(',').map((v) => v.trim()).filter(Boolean);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const API_KEY = "f52d2874c696449aae2cc924336c2c04";
+app.disable('x-powered-by');
+app.use(cors({ origin: allowedOrigins }));
+app.use(express.json({ limit: '32kb' }));
 
-app.get("/games", async (req, res) => {
-    try {
-        const response = await axios.get(`https://api.rawg.io/api/games`, {
-            params: {
-                key: API_KEY,
-            },
-        });
-        res.json(response.data);
-    } catch (error) {
-        console.error("Error fetching games:", error); // Log the error for debugging
-        res.status(500).send("Error fetching games");
-    }
+const cache = new Map();
+const TTL = 5 * 60 * 1000;
+const contactWindow = new Map();
+
+function cached(key) {
+  const item = cache.get(key);
+  if (!item || Date.now() - item.at > TTL) return null;
+  return item.value;
+}
+function setCache(key, value) { cache.set(key, { at: Date.now(), value }); return value; }
+function normalizeUrl(value) { try { const u = new URL(value); return ['http:', 'https:'].includes(u.protocol) ? u.toString() : null; } catch { return null; } }
+function rateLimited(key, limit = 5, windowMs = 60_000) {
+  const now = Date.now();
+  const item = contactWindow.get(key);
+  if (!item || now - item.at > windowMs) { contactWindow.set(key, { at: now, count: 1 }); return false; }
+  item.count += 1;
+  return item.count > limit;
+}
+
+app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'playverse-api', time: new Date().toISOString() }));
+
+app.get('/api/games', async (req, res) => {
+  const platform = String(req.query.platform || 'browser').toLowerCase() === 'pc' ? 'pc' : 'browser';
+  const key = `freetogame:${platform}`;
+  const hit = cached(key);
+  if (hit) return res.json(hit);
+  try {
+    const url = new URL('https://www.freetogame.com/api/games');
+    url.searchParams.set('platform', platform);
+    const response = await fetch(url, { headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error(`FreeToGame responded ${response.status}`);
+    const data = await response.json();
+    const normalized = Array.isArray(data) ? data.map((game) => ({
+      id: `ftg-${game.id}`,
+      title: game.title,
+      thumbnail: normalizeUrl(game.thumbnail), image: normalizeUrl(game.thumbnail),
+      description: game.short_description || '',
+      category: game.genre || 'Other', genre: game.genre || 'Other',
+      platform: game.platform || platform, publisher: game.publisher || '', developer: game.developer || '',
+      released: game.release_date || '', rating: 4.2, game_url: normalizeUrl(game.game_url),
+      source: 'FreeToGame', externalUrl: normalizeUrl(game.game_url), embedEligible: false,
+    })) : [];
+    res.json(setCache(key, normalized));
+  } catch (error) {
+    console.error('[games]', error.message);
+    res.status(502).json({ message: 'Game catalog provider is temporarily unavailable.' });
+  }
 });
 
-app.get("/browser", async (req, res) => {
-    try {
-        const response = await axios.get("https://www.freetogame.com/api/games?platform=browser");
-        res.json(response.data);
-    } catch (error) {
-        res.status(500).send("Error fetching games");
-    }
+app.get('/api/rawg/games', async (req, res) => {
+  if (!process.env.RAWG_API_KEY) return res.status(503).json({ message: 'RAWG is disabled. Set RAWG_API_KEY on the server to enable the PC catalog.' });
+  const page = Math.min(Math.max(Number(req.query.page || 1), 1), 50);
+  const search = String(req.query.search || '').trim().slice(0, 120);
+  const cacheKey = `rawg:${page}:${search.toLowerCase()}`;
+  const hit = cached(cacheKey);
+  if (hit) return res.json(hit);
+  try {
+    const url = new URL('https://api.rawg.io/api/games');
+    url.searchParams.set('key', process.env.RAWG_API_KEY);
+    url.searchParams.set('page', String(page));
+    url.searchParams.set('page_size', '40');
+    url.searchParams.set('parent_platforms', '1');
+    url.searchParams.set('ordering', '-added');
+    if (search) url.searchParams.set('search', search);
+    const response = await fetch(url, { headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error(`RAWG responded ${response.status}`);
+    const data = await response.json();
+    const normalized = {
+      next: Boolean(data.next),
+      count: Number(data.count || 0),
+      results: (data.results || []).map((game) => ({
+        id: `rawg-${game.id}`, title: game.name, image: normalizeUrl(game.background_image), thumbnail: normalizeUrl(game.background_image),
+        description: '', category: game.genres?.[0]?.name || 'Other', genre: game.genres?.map((g) => g.name).slice(0, 3).join(', ') || 'Other',
+        platform: 'PC', released: game.released || '', rating: Number(game.rating || 0), metacritic: Number(game.metacritic || 0),
+        source: 'RAWG', externalUrl: `https://rawg.io/games/${game.slug}`, embedEligible: false,
+      })),
+    };
+    res.json(setCache(cacheKey, normalized));
+  } catch (error) {
+    console.error('[rawg]', error.message);
+    res.status(502).json({ message: 'PC metadata provider is temporarily unavailable.' });
+  }
 });
 
-app.listen(5000, () => {
-    console.log("Server is running on port 5000");
+app.post('/api/contact', (req, res) => {
+  const key = req.ip || 'unknown';
+  if (rateLimited(key)) return res.status(429).json({ message: 'Too many messages. Please try again later.' });
+  const name = String(req.body?.name || '').trim();
+  const email = String(req.body?.email || '').trim();
+  const message = String(req.body?.message || '').trim();
+  if (name.length < 2 || name.length > 80 || !/^\S+@\S+\.\S+$/.test(email) || message.length < 10 || message.length > 3000) {
+    return res.status(400).json({ message: 'Please provide a valid name, email, and a message between 10 and 3000 characters.' });
+  }
+  console.log(`[contact] ${new Date().toISOString()} ${name} <${email}>: ${message}`);
+  res.json({ ok: true, message: 'Your message was accepted by the demo API. Connect this endpoint to email/ticketing before production launch.' });
 });
+
+const distDir = path.resolve(__dirname, '../dist');
+app.use(express.static(distDir));
+app.get('/{*splat}', (req, res, next) => { if (req.path.startsWith('/api/')) return next(); res.sendFile(path.join(distDir, 'index.html'), (error) => error && next(error)); });
+app.listen(PORT, () => console.log(`PlayVerse API running on http://localhost:${PORT}`));

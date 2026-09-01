@@ -1,15 +1,25 @@
-import React from "react";
-import './GameCard.css'; // Import your game card styles
+import { Link } from 'react-router-dom';
+import Icon from './Icon';
 
-const GameCard = ({ title, image, onClick }) => {
-    return (
-        <div className="game-card" onClick={onClick}>
-            <div className="image-container">
-                <img src={image} alt={title} className="game-image" />
-            </div>
-            <h3 className="game-title">{title}</h3>
+export default function GameCard({ game, favorite, onFavorite }) {
+  const category = game.category || game.genre || 'Other';
+  return (
+    <article className="game-card">
+      <Link to={`/play/${encodeURIComponent(game.id)}`} className="game-cover" aria-label={`Open ${game.title}`}>
+        <img src={game.image || game.thumbnail} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }} />
+        <div className="cover-overlay"><span className="play-pill"><Icon name="play" size={16} /> {game.platform === 'Mobile' ? 'Open store' : game.distribution === 'Store' ? 'View game' : 'Play'}</span></div>
+        <div className="cover-badges"><span className="rating"><Icon name="star" size={13} /> {Number(game.rating || 4).toFixed(1)}</span><span className="source-badge">{game.platform || 'Browser'}</span></div>
+      </Link>
+      <div className="game-card-body">
+        <div className="meta-row">
+          <span className="chip">{category}</span>
+          <button className={`heart-btn ${favorite ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); e.stopPropagation(); onFavorite(game.id); }} aria-label={`${favorite ? 'Remove' : 'Add'} ${game.title} ${favorite ? 'from' : 'to'} favorites`}>
+            <Icon name="heart" size={17} />
+          </button>
         </div>
-    );
-};
-
-export default GameCard;
+        <Link to={`/play/${encodeURIComponent(game.id)}`}><h3>{game.title}</h3></Link>
+        <p>{game.description || 'Explore this title on PlayVerse.'}</p>
+      </div>
+    </article>
+  );
+}
