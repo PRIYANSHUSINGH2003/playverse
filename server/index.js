@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { pcGames as curatedPcGames } from '../src/data/platformGames.js';
 
 const app = express();
 const PORT = Number(process.env.PORT || 5000);
@@ -62,9 +63,15 @@ app.get('/api/games', async (req, res) => {
 });
 
 app.get('/api/rawg/games', async (req, res) => {
-  if (!process.env.RAWG_API_KEY) return res.status(503).json({ message: 'RAWG is disabled. Set RAWG_API_KEY on the server to enable the PC catalog.' });
   const page = Math.min(Math.max(Number(req.query.page || 1), 1), 50);
   const search = String(req.query.search || '').trim().slice(0, 120);
+  if (!process.env.RAWG_API_KEY) {
+    const q = search.toLowerCase();
+    const filtered = q ? curatedPcGames.filter((game) => `${game.title} ${game.genre} ${game.category} ${game.description}`.toLowerCase().includes(q)) : curatedPcGames;
+    const pageSize = 24;
+    const start = (page - 1) * pageSize;
+    return res.json({ source: 'curated', next: start + pageSize < filtered.length, count: filtered.length, results: filtered.slice(start, start + pageSize) });
+  }
   const cacheKey = `rawg:${page}:${search.toLowerCase()}`;
   const hit = cached(cacheKey);
   if (hit) return res.json(hit);

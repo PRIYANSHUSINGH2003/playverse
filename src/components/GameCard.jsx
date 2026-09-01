@@ -6,7 +6,7 @@ export default function GameCard({ game, favorite, onFavorite }) {
   return (
     <article className="game-card">
       <Link to={`/play/${encodeURIComponent(game.id)}`} className="game-cover" aria-label={`Open ${game.title}`}>
-        <img src={game.image || game.thumbnail} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }} />
+        {(game.image || game.thumbnail) ? <img src={game.image || game.thumbnail} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} /> : <div className="game-cover-placeholder" aria-hidden="true"><strong>{game.title?.slice(0, 2).toUpperCase()}</strong><span>PLAYVERSE</span></div>}
         <div className="cover-overlay"><span className="play-pill"><Icon name="play" size={16} /> {game.platform === 'Mobile' ? 'Open store' : game.distribution === 'Store' ? 'View game' : 'Play'}</span></div>
         <div className="cover-badges"><span className="rating"><Icon name="star" size={13} /> {Number(game.rating || 4).toFixed(1)}</span><span className="source-badge">{game.platform || 'Browser'}</span></div>
       </Link>

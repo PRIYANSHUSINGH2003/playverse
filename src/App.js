@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import Header from './components/Header';
@@ -12,7 +12,8 @@ import Favorites from './pages/Favorites';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import NotFound from './pages/NotFound';
-import { featuredGames } from './data/games';
+import { featuredGames, mergeGames } from './data/games';
+import { fetchBrowserGames, fetchPCGames } from './lib/api';
 import { pcGames, mobileGames } from './data/platformGames';
 import './styles.css';
 
@@ -22,10 +23,29 @@ function Shell() {
   const [recent, setRecent] = useLocalStorage('recent', []);
   const [search, setSearch] = useLocalStorage('search', '');
   const [catalogGames, setCatalogGames] = useLocalStorage('catalog-cache', featuredGames);
+  const [remoteCatalog, setRemoteCatalog] = useLocalStorage('remote-catalog-cache', []);
+  const [catalogHydrated, setCatalogHydrated] = useState(false);
   const location = useLocation();
 
   useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }); }, [location.pathname]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    Promise.allSettled([
+      fetchBrowserGames(controller.signal),
+      fetchPCGames({ page: 1, search: '', signal: controller.signal }),
+    ]).then(([browserResult, pcResult]) => {
+      if (controller.signal.aborted) return;
+      setCatalogHydrated(true);
+      const browser = browserResult.status === 'fulfilled' && Array.isArray(browserResult.value) ? browserResult.value : [];
+      const pcPayload = pcResult.status === 'fulfilled' ? pcResult.value : null;
+      const pc = Array.isArray(pcPayload) ? pcPayload : (pcPayload?.results || []);
+      const remote = mergeGames(browser, pc);
+      if (remote.length) setRemoteCatalog((previous) => mergeGames(remote, previous).slice(0, 600));
+    }).catch(() => setCatalogHydrated(true));
+    return () => controller.abort();
+  }, [setRemoteCatalog]);
 
   const toggleFavorite = useCallback((id) => setFavorites((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [id, ...prev]), [setFavorites]);
   const markPlayed = useCallback((game) => {
@@ -35,7 +55,7 @@ function Shell() {
     });
     setRecent((prev) => [game.id, ...prev.filter((id) => id !== game.id)].slice(0, 12));
   }, [setCatalogGames, setRecent]);
-  const allGames = [...catalogGames, ...featuredGames, ...pcGames, ...mobileGames].filter((g, i, a) => a.findIndex((x) => x.id === g.id) === i);
+  const allGames = useMemo(() => mergeGames(remoteCatalog, catalogGames, featuredGames, pcGames, mobileGames), [remoteCatalog, catalogGames, pcGames, mobileGames]);
   const id = decodeURIComponent(location.pathname.split('/play/')[1] || '');
   const playing = id ? allGames.find((g) => g.id === id) : null;
 
@@ -50,7 +70,7 @@ function Shell() {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/menu" element={<MobileMenu />} />
-        <Route path="/play/:id" element={playing ? <GamePlayer game={playing} allGames={allGames} onPlayed={markPlayed} /> : <NotFound />} />
+        <Route path="/play/:id" element={playing ? <GamePlayer game={playing} allGames={allGames} onPlayed={markPlayed} /> : !catalogHydrated ? <main className="container page-content"><div className="catalog-notice">Loading game catalog…</div></main> : <NotFound />} />
         <Route path="/privacy" element={<main className="container page-content prose-page"><span className="eyebrow">PRIVACY</span><h1>Privacy overview</h1><p>PlayVerse stores theme, search, favorites, and recently played state in your browser. External games, game catalogs, advertising providers, and outbound websites have their own policies.</p><p>For production advertising in the EEA, UK, or Switzerland, configure a Google-certified consent management solution before requesting personalized advertising.</p></main>} />
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -13,6 +13,7 @@ export default function GamePlayer({ game, allGames, onPlayed }) {
   const url = safeUrl(game.game_url || game.externalUrl);
   const host = hostOf(url || '');
   const canEmbed = Boolean(url && game.embedEligible);
+  const isStoreLaunch = game.platform === 'Mobile' || game.source === 'Google Play' || game.source === 'App Store';
 
   useEffect(() => { setFailed(false); onPlayed(game); }, [game, onPlayed]);
 
@@ -46,9 +47,9 @@ export default function GamePlayer({ game, allGames, onPlayed }) {
               <div className="blocked-player">
                 <img src={game.image || game.thumbnail} alt="" />
                 <div>
-                  <span className="eyebrow">{game.platform === 'Mobile' ? 'STORE LAUNCH' : 'DIRECT LAUNCH RECOMMENDED'}</span>
+                  <span className="eyebrow">{isStoreLaunch ? 'STORE LAUNCH' : 'DIRECT LAUNCH RECOMMENDED'}</span>
                   <h2>{game.title}</h2>
-                  <p>{game.platform === 'Mobile' ? 'This title is distributed through an official mobile store. Open the store page to install or play it on a supported device.' : 'This game is hosted by a third party or does not permit iframe embedding. Open the official game page to play.'}</p>
+                  <p>{isStoreLaunch ? 'This title is distributed through an official mobile store. Open the store page to install or play it on a supported device.' : 'This game is hosted by a third party or does not permit iframe embedding. Open the official game page to play.'}</p>
                   <a className="primary-btn" href={url} target="_blank" rel="noopener noreferrer"><Icon name="play" size={17}/> {game.actionLabel || 'Launch game'}</a>
                 </div>
               </div>
